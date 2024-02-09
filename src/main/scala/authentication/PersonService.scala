@@ -4,7 +4,7 @@ import infrastructure.{Configuration, Encryption}
 import zio.{Task, ZIO, ZLayer}
 
 private[authentication] case object PersonNotFoundException
-    extends Throwable("User with given username cannot be found!")
+    extends Throwable("User with given email cannot be found!")
 
 private[authentication] case object FaultyPasswordException extends Throwable("Given password is not right!")
 
