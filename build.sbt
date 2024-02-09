@@ -7,7 +7,7 @@ val ZioVersion       = "2.1.15"
 val ZioTestVersion   = "2.0.13"
 val ZioConfigVersion = "3.0.7"
 val ZioJsonVersion   = "0.5.0"
-val ZioHttpVersion   = ""
+val ZioHttpVersion   = "3.0.0-RC1"
 
 lazy val root = (project in file("."))
   .settings(
@@ -15,6 +15,7 @@ lazy val root = (project in file("."))
     libraryDependencies ++= Seq(
       "dev.zio"              %% "zio-logging"         % ZioVersion,
       "dev.zio"              %% "zio-logging-slf4j"   % ZioVersion,
+      "dev.zio"              %% "zio-http"            % ZioHttpVersion,
       "dev.zio"              %% "zio-config"          % ZioConfigVersion,
       "dev.zio"              %% "zio-config-typesafe" % ZioConfigVersion,
       "dev.zio"              %% "zio-config-magnolia" % ZioConfigVersion,
