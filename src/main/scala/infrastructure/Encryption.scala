@@ -2,10 +2,19 @@ package infrastructure
 
 import pdi.jwt.{Jwt, JwtAlgorithm, JwtClaim}
 import zio.config.ReadError
-import zio.{Task, ULayer, ZIO, ZLayer}
+import zio.http._
+import zio._
 
 import java.security.MessageDigest
 import java.time.Clock
+import scala.util.Try
+
+object EncryptionUtils {
+  def authenticationLogic: String => ZIO[Configuration with Encryption, Response, Boolean] = Encryption
+    .jwtDecode(_)
+    .flatMap(ZIO.fromTry(_))
+    .mapBoth(t => HttpError.httpErrorResponse(t.getMessage, Status.Unauthorized), _ => true)
+}
 
 object Encryption {
   val live: ULayer[Encryption] = ZLayer.succeed(Encryption())
@@ -15,7 +24,7 @@ object Encryption {
   def jwtEncode(email: String): ZIO[Configuration with Encryption, ReadError[String], String] =
     ZIO.serviceWithZIO[Encryption](_.jwtEncode(email))
 
-  def jwtDecode(token: String): ZIO[Configuration with Encryption, ReadError[String], Option[JwtClaim]] =
+  def jwtDecode(token: String): ZIO[Configuration with Encryption, ReadError[String], Try[JwtClaim]] =
     ZIO.serviceWithZIO[Encryption](_.jwtDecode(token))
 }
 
@@ -37,8 +46,8 @@ case class Encryption() {
     jwt            = Jwt.encode(claim, configuration.securityConfiguration.secretKey, JwtAlgorithm.HS512)
   } yield jwt
 
-  def jwtDecode(token: String): ZIO[Configuration, ReadError[String], Option[JwtClaim]] = for {
+  def jwtDecode(token: String): ZIO[Configuration, ReadError[String], Try[JwtClaim]] = for {
     configuration <- Configuration.load
-    decoded        = Jwt.decode(token, configuration.securityConfiguration.secretKey, Seq(JwtAlgorithm.HS512)).toOption
+    decoded        = Jwt.decode(token, configuration.securityConfiguration.secretKey, Seq(JwtAlgorithm.HS512))
   } yield decoded
 }

@@ -10,5 +10,5 @@ object HttpError {
   implicit val httpErrorDecoder: JsonDecoder[HttpError] = DeriveJsonDecoder.gen[HttpError]
 
   def httpErrorResponse(message: String, status: Status): Response =
-    Response.json(HttpError(message).toJson).withStatus(status)
+    Response.json(HttpError(message).toJson).status(status)
 }

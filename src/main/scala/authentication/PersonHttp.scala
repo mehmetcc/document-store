@@ -2,19 +2,19 @@ package authentication
 
 import authentication.PersonHttp.Models.Implicits._
 import authentication.PersonHttp.Models._
-import infrastructure.{HttpError, HttpRequest}
+import infrastructure.{Configuration, Encryption, HttpError, HttpRequest}
 import zio.http._
 import zio.json._
 
 object PersonHttp {
 
-  val PersonApp = Http.collectZIO[Request] {
-    case request @ Method.POST -> !! / "api" / "v1" / "person" / "register" => registerPerson(request)
-    case request @ Method.POST -> !! / "api" / "v1" / "person" / "login"    => loginPerson(request)
-  }
+  val PersonApp: HttpApp[PersonDao with Encryption with PersonService with Configuration] =
+    Routes(registerPerson, loginPerson).toHttpApp
 
-  private def registerPerson(request: Request) =
-    extractAndRegister(request).fold(success = registerResponseOnSuccess, failure = responseOnFailure)
+  private def registerPerson: Route[PersonDao with Encryption with PersonService, Nothing] =
+    Method.POST / "api" / "v1" / "person" / "register" -> handler { request: Request =>
+      extractAndRegister(request).fold(success = registerResponseOnSuccess, failure = responseOnFailure)
+    }
 
   private def extractAndRegister(request: Request) =
     for {
@@ -24,8 +24,10 @@ object PersonHttp {
             )
     } yield id
 
-  private def loginPerson(request: Request) =
-    extractAndLogin(request).fold(success = loginResponseOnSuccess, failure = responseOnFailure)
+  private def loginPerson: Route[Configuration with Encryption with PersonService, Nothing] =
+    Method.POST / "api" / "v1" / "person" / "login" -> handler { (request: Request) =>
+      extractAndLogin(request).fold(success = loginResponseOnSuccess, failure = responseOnFailure)
+    }
 
   private def extractAndLogin(request: Request) =
     for {

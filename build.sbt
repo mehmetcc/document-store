@@ -7,7 +7,7 @@ val ZioVersion       = "2.1.15"
 val ZioTestVersion   = "2.0.13"
 val ZioConfigVersion = "3.0.7"
 val ZioJsonVersion   = "0.5.0"
-val ZioHttpVersion   = "3.0.0-RC1"
+val ZioHttpVersion   = "3.0.0-RC3"
 
 lazy val root = (project in file("."))
   .settings(
