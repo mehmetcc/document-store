@@ -1,3 +1,4 @@
+import admin.PersonAdminHttp.PersonAdminApp
 import authentication.PersonHttp.PersonApp
 import authentication.{PersonDao, PersonService}
 import document.DocumentDao
@@ -9,7 +10,7 @@ import zio._
 import zio.http._
 
 object Main extends ZIOAppDefault {
-  private lazy val App = PersonApp ++ DocumentApp
+  private lazy val App = PersonApp ++ DocumentApp ++ PersonAdminApp
 
   private lazy val program = for {
     configuration <- Configuration.load

@@ -1,6 +1,5 @@
 package authentication
 
-import authentication.PersonRole._
 import infrastructure.Encryption
 import io.getquill.SnakeCase
 import io.getquill.jdbczio.Quill
@@ -18,6 +17,9 @@ object PersonDao {
 
   def readByEmail(email: String): ZIO[PersonDao, SQLException, Option[Person]] =
     ZIO.serviceWithZIO[PersonDao](_.readByEmail(email))
+
+  def readFirstN(limit: Int, page: Int): ZIO[PersonDao, SQLException, List[Person]] =
+    ZIO.serviceWithZIO[PersonDao](_.readFirstN(limit, page))
 
   def readAll: ZIO[PersonDao, SQLException, List[Person]] = ZIO.serviceWithZIO[PersonDao](_.readAll)
 
@@ -37,6 +39,10 @@ case class PersonDao(quill: Quill.Postgres[SnakeCase]) {
   def readByEmail(email: String): ZIO[Any, SQLException, Option[Person]] = run {
     query[Person].filter(_.email == lift(email))
   }.map(_.headOption)
+
+  def readFirstN(limit: Int, page: Int): ZIO[Any, SQLException, List[Person]] = run {
+    query[Person].sortBy(_.personId).drop(lift((page - 1) * limit)).take(lift(limit))
+  }.map(_.map(_.copy(password = "******")).toList)
 
   def readAll: ZIO[Any, SQLException, List[Person]] = run(query[Person])
 

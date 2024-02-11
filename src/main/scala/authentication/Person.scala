@@ -1,9 +1,8 @@
 package authentication
 
 import io.getquill.MappedEncoding
-import zio.json.internal.RetractReader
-import zio.json.{DeriveJsonDecoder, DeriveJsonEncoder, JsonDecoder, JsonEncoder, JsonError}
-import zio.{IO, Task, ZIO}
+import zio._
+import zio.json._
 
 case class PersonValidationException(message: String) extends Throwable(message)
 
@@ -73,4 +72,7 @@ object Person {
   private def validatePassword(password: String): IO[String, String] =
     if (password.length >= 6) ZIO.succeed(password)
     else ZIO.fail("password should be at least 6 digits")
+
+  implicit val personEncoder: JsonEncoder[Person] = DeriveJsonEncoder.gen[Person]
+  implicit val personDecoder: JsonDecoder[Person] = DeriveJsonDecoder.gen[Person]
 }

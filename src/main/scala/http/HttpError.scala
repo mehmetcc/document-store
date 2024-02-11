@@ -12,3 +12,7 @@ object HttpError {
   def httpErrorResponse(message: String, status: Status): Response =
     Response.json(HttpError(message).toJson).status(status)
 }
+
+object CommonExceptions {
+  case object PaginationException extends Throwable("Wrong query parameters while paginating.")
+}
