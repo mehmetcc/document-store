@@ -1,10 +1,9 @@
 package authentication
 
-import infrastructure.{Configuration, Encryption}
+import infrastructure.{Configuration, Encryption, JwtClaimDto}
 import zio.{Task, ZIO, ZLayer}
 
-private[authentication] case object PersonNotFoundException
-    extends Throwable("User with given email cannot be found!")
+private[authentication] case object PersonNotFoundException extends Throwable("User with given email cannot be found!")
 
 private[authentication] case object FaultyPasswordException extends Throwable("Given password is not right!")
 
@@ -43,7 +42,7 @@ case class PersonService(dao: PersonDao) {
     found     <- dao.readByEmail(dto.email)
     extracted <- extractUser(found)
     encrypted <- Encryption.sha256(dto.password)
-    encoded   <- Encryption.jwtEncode(dto.email)
+    encoded   <- Encryption.jwtEncode(JwtClaimDto(extracted.email, extracted.role))
     result <- if (extracted.password == encrypted) ZIO.succeed(encoded)
               else ZIO.fail(FaultyPasswordException)
   } yield result

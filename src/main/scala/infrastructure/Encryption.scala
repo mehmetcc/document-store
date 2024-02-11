@@ -1,20 +1,24 @@
 package infrastructure
 
+import authentication.PersonRole
 import pdi.jwt.{Jwt, JwtAlgorithm, JwtClaim}
-import zio.config.ReadError
-import http._
 import zio._
-import zio.http._
+import zio.config.ReadError
+import zio.json._
 
 import java.security.MessageDigest
 import java.time.Clock
 import scala.util.Try
 
-object EncryptionUtils {
-  def authenticationLogic: String => ZIO[Configuration with Encryption, Response, Boolean] = Encryption
-    .jwtDecode(_)
-    .flatMap(ZIO.fromTry(_))
-    .mapBoth(t => HttpError.httpErrorResponse(t.getMessage, Status.Unauthorized), _ => true)
+case class JwtClaimDto(email: String, role: PersonRole)
+
+object JwtClaimDto {
+  def fromClaim(claim: JwtClaim): Either[String, JwtClaimDto] = claim.content.fromJson[JwtClaimDto]
+
+  def fromClaimZIO(claim: JwtClaim): Task[JwtClaimDto] = ZIO.fromEither(fromClaim(claim)).mapError(new Throwable(_))
+
+  implicit val jwtClaimDtoEncoder: JsonEncoder[JwtClaimDto] = DeriveJsonEncoder.gen[JwtClaimDto]
+  implicit val jwtClaimDtoDecoder: JsonDecoder[JwtClaimDto] = DeriveJsonDecoder.gen[JwtClaimDto]
 }
 
 object Encryption {
@@ -22,8 +26,8 @@ object Encryption {
 
   def sha256(text: String): ZIO[Encryption, Throwable, String] = ZIO.serviceWithZIO[Encryption](_.sha256(text))
 
-  def jwtEncode(email: String): ZIO[Configuration with Encryption, ReadError[String], String] =
-    ZIO.serviceWithZIO[Encryption](_.jwtEncode(email))
+  def jwtEncode(dto: JwtClaimDto): ZIO[Configuration with Encryption, ReadError[String], String] =
+    ZIO.serviceWithZIO[Encryption](_.jwtEncode(dto))
 
   def jwtDecode(token: String): ZIO[Configuration with Encryption, ReadError[String], Try[JwtClaim]] =
     ZIO.serviceWithZIO[Encryption](_.jwtDecode(token))
@@ -40,9 +44,9 @@ case class Encryption() {
       .mkString
   )
 
-  def jwtEncode(email: String): ZIO[Configuration, ReadError[String], String] = for {
+  def jwtEncode(dto: JwtClaimDto): ZIO[Configuration, ReadError[String], String] = for {
     configuration <- Configuration.load
-    json           = s"""{"email": "${email}"}"""
+    json           = dto.toJson
     claim          = JwtClaim(json).issuedNow.expiresIn(configuration.securityConfiguration.expiryTime)
     jwt            = Jwt.encode(claim, configuration.securityConfiguration.secretKey, JwtAlgorithm.HS512)
   } yield jwt

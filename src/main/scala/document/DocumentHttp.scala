@@ -2,23 +2,21 @@ package document
 
 import document.DocumentHttp.Models.Implicits._
 import document.DocumentHttp.Models._
+import http.HttpMiddleware.{onlyAdmin, onlyAuthenticated, onlyCreator}
 import http.{HttpError, HttpRequest}
-import infrastructure.{Configuration, Encryption, EncryptionUtils}
-import zio.http.Middleware._
+import infrastructure.{Configuration, Encryption}
 import zio.http._
 import zio.json._
 
 object DocumentHttp {
-  private val DocumentRoutes = Routes(createDocument) @@ bearerAuthZIO {
-    EncryptionUtils.authenticationLogic
-  }
+  private val DocumentRoutes = Routes(createDocument)
 
   val DocumentApp: HttpApp[Configuration with Encryption with DocumentDao] = DocumentRoutes.toHttpApp
 
-  private def createDocument: Route[Encryption with DocumentDao, Nothing] =
+  private def createDocument: Route[Configuration with Encryption with DocumentDao, Nothing] =
     Method.POST / "api" / "v1" / "document" -> handler { request: Request =>
       extractAndCreate(request).fold(success = createDocumentResponseOnSuccess, failure = responseOnFailure)
-    }
+    } @@ onlyCreator
 
   private def extractAndCreate(request: Request) = for {
     parsed <- HttpRequest.fromRequestBody[CreateDocumentRequest](request)

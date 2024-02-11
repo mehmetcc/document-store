@@ -1,5 +1,6 @@
 package document
 
+import authentication.PersonRole
 import infrastructure.Encryption
 import io.getquill.SnakeCase
 import io.getquill.jdbczio.Quill

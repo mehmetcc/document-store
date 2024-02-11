@@ -1,6 +1,8 @@
 package authentication
 
 import io.getquill.MappedEncoding
+import zio.json.internal.RetractReader
+import zio.json.{DeriveJsonDecoder, DeriveJsonEncoder, JsonDecoder, JsonEncoder, JsonError}
 import zio.{IO, Task, ZIO}
 
 case class PersonValidationException(message: String) extends Throwable(message)
@@ -8,16 +10,19 @@ case class PersonValidationException(message: String) extends Throwable(message)
 sealed trait PersonRole
 
 object PersonRole {
-  implicit val encodePersonRole: MappedEncoding[PersonRole, String] = MappedEncoding[PersonRole, String] {
+  implicit val personRoleQuillDecoder: MappedEncoding[PersonRole, String] = MappedEncoding[PersonRole, String] {
     case Reader  => "Reader"
     case Creator => "Creator"
     case Admin   => "Admin"
   }
-  implicit val decodePersonRole: MappedEncoding[String, PersonRole] = MappedEncoding[String, PersonRole] {
+  implicit val personRoleQuillEncoder: MappedEncoding[String, PersonRole] = MappedEncoding[String, PersonRole] {
     case "Reader"  => Reader
     case "Creator" => Creator
     case "Admin"   => Admin
   }
+
+  implicit val personRoleJsonDecoder: JsonDecoder[PersonRole] = DeriveJsonDecoder.gen[PersonRole]
+  implicit val personRoleJsonEncoder: JsonEncoder[PersonRole] = DeriveJsonEncoder.gen[PersonRole]
 }
 
 case object Reader  extends PersonRole
