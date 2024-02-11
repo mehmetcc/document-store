@@ -1,6 +1,6 @@
 package infrastructure
 
-import zio.{Scope, ZIO}
+import zio.Scope
 import zio.test._
 
 object EncryptionSpec extends ZIOSpecDefault {
@@ -11,7 +11,7 @@ object EncryptionSpec extends ZIOSpecDefault {
         encrypted <- Encryption.jwtEncode(email)
       } yield assertTrue(encrypted.nonEmpty)
     },
-    test("token given should decode to correct mail") {
+    test("token given should decode") {
       val token = Encryption.jwtEncode(email)
       for {
         extracted <- token

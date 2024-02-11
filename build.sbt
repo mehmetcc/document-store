@@ -11,7 +11,13 @@ val ZioHttpVersion   = "3.0.0-RC3"
 
 lazy val root = (project in file("."))
   .settings(
-    name := "document-store",
+    name                  := "document-store",
+    // Coverage Settings
+    coverageEnabled       := true,
+    coverageOutputHTML    := true,
+    coverageFailOnMinimum := false,
+    coverageHighlighting  := true,
+    // Dependencies
     libraryDependencies ++= Seq(
       "dev.zio"              %% "zio-logging"         % ZioVersion,
       "dev.zio"              %% "zio-logging-slf4j"   % ZioVersion,
