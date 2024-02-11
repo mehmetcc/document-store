@@ -2,8 +2,9 @@ package infrastructure
 
 import pdi.jwt.{Jwt, JwtAlgorithm, JwtClaim}
 import zio.config.ReadError
-import zio.http._
+import http._
 import zio._
+import zio.http._
 
 import java.security.MessageDigest
 import java.time.Clock

@@ -1,16 +1,36 @@
 package authentication
 
+import io.getquill.MappedEncoding
 import zio.{IO, Task, ZIO}
 
 case class PersonValidationException(message: String) extends Throwable(message)
 
-case class Person(personId: Int = 0, username: String, email: String, password: String)
+sealed trait PersonRole
+
+object PersonRole {
+  implicit val encodePersonRole: MappedEncoding[PersonRole, String] = MappedEncoding[PersonRole, String] {
+    case Reader  => "Reader"
+    case Creator => "Creator"
+    case Admin   => "Admin"
+  }
+  implicit val decodePersonRole: MappedEncoding[String, PersonRole] = MappedEncoding[String, PersonRole] {
+    case "Reader"  => Reader
+    case "Creator" => Creator
+    case "Admin"   => Admin
+  }
+}
+
+case object Reader  extends PersonRole
+case object Creator extends PersonRole
+case object Admin   extends PersonRole
+
+case class Person(personId: Int = 0, username: String, email: String, password: String, role: PersonRole)
 
 object Person {
   def from(personId: Int, username: String, email: String, password: String): Task[Person] = ZIO
     .collectAllPar(List(validateUsername(username), validateEmail(email), validatePassword(password)))
     .withParallelism(3)
-    .map(details => Person(personId, details.head, details(1), details(2)))
+    .map(details => Person(personId, details.head, details(1), details(2), Reader))
     .catchAll(errors => ZIO.fail(PersonValidationException(errors)))
 
   def fromRegisterDto(dto: RegisterDto): Task[Person] = ZIO
@@ -22,7 +42,7 @@ object Person {
       )
     )
     .withParallelism(3)
-    .map(details => Person(0, details.head, details(1), details(2)))
+    .map(details => Person(0, details.head, details(1), details(2), Reader))
     .catchAll(errors => ZIO.fail(PersonValidationException(errors)))
 
   private def validateUsername(username: String): IO[String, String] =

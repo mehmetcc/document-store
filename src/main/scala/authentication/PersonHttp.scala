@@ -2,7 +2,8 @@ package authentication
 
 import authentication.PersonHttp.Models.Implicits._
 import authentication.PersonHttp.Models._
-import infrastructure.{Configuration, Encryption, HttpError, HttpRequest}
+import http.{HttpError, HttpRequest}
+import infrastructure.{Configuration, Encryption}
 import zio.http._
 import zio.json._
 

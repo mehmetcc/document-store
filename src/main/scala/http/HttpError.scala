@@ -1,4 +1,4 @@
-package infrastructure
+package http
 
 import zio.http.{Response, Status}
 import zio.json._

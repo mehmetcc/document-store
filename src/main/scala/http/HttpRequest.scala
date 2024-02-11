@@ -1,4 +1,4 @@
-package infrastructure
+package http
 
 import zio.http._
 import zio.json._

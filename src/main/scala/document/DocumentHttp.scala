@@ -2,7 +2,8 @@ package document
 
 import document.DocumentHttp.Models.Implicits._
 import document.DocumentHttp.Models._
-import infrastructure.{Configuration, Encryption, EncryptionUtils, HttpError, HttpRequest}
+import http.{HttpError, HttpRequest}
+import infrastructure.{Configuration, Encryption, EncryptionUtils}
 import zio.ZIO
 import zio.config.ReadError
 import zio.http.Middleware._
